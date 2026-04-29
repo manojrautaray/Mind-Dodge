@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Mind Dodge: Adaptive AI Arena - Survive the glowing swarm in this neon dodger where the AI learns from your movements.">
+    <title>Mind Dodge: Adaptive AI Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- UI Overlay -->
+        <div id="ui-layer">
+            <!-- Heads Up Display -->
+            <div id="hud" class="hidden">
+                <div class="top-bar">
+                    <div class="score-display">SCORE <span id="score" class="mono-text">0</span></div>
+                    <div class="time-display">TIME <span id="time" class="mono-text">0:00</span></div>
+                    <div class="multiplier-display">MULTI <span class="mono-text">x<span id="multiplier">1.0</span></span></div>
+                </div>
+                <div class="ai-status">
+                    <span id="ai-status-text">AI noticed: Analyzing...</span>
+                </div>
+                <button id="pause-btn" class="icon-btn" aria-label="Pause Game">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Start Screen -->
+            <div id="start-screen" class="screen">
+                <div class="glass-panel">
+                    <h1 class="neon-text">MIND DODGE</h1>
+                    <h2 class="neon-subtitle">ADAPTIVE AI ARENA</h2>
+                    <p class="desc">Survive the glowing swarm. The AI learns your patterns and adapts in real-time. Collect drops for an advantage!</p>
+                    <div class="controls-info">
+                        <div class="control-box">
+                            <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+                            <span>or Arrows to Move</span>
+                        </div>
+                        <div class="control-box">
+                            <span class="key touch">👆</span>
+                            <span>Touch & Drag on Mobile</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:center; gap: 1.5rem; margin-bottom: 2rem; font-size: 0.9rem; color: #ccc;">
+                        <div><span style="color: #fff; text-shadow: 0 0 5px #fff; font-weight: bold;">◆</span> Shield</div>
+                        <div><span style="color: #ff0; text-shadow: 0 0 5px #ff0; font-weight: bold;">◆</span> EMP</div>
+                        <div><span style="color: #0f0; text-shadow: 0 0 5px #0f0; font-weight: bold;">◆</span> Speed</div>
+                    </div>
+                    <button id="start-btn" class="neon-btn glow-cyan">INITIATE SURVIVAL</button>
+                    <p class="high-score">Personal Best: <span id="start-high-score" class="mono-text glow-text">0</span></p>
+                </div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over-screen" class="screen hidden">
+                <div class="glass-panel border-red">
+                    <h1 class="neon-text red-glow">SYSTEM FAILURE</h1>
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <span class="stat-label">FINAL SCORE</span>
+                            <span id="final-score" class="stat-value mono-text">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">SURVIVAL TIME</span>
+                            <span id="final-time" class="stat-value mono-text">0:00</span>
+                        </div>
+                    </div>
+                    <div class="ai-analysis">
+                        <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>AI Post-Match Analysis</h3>
+                        <ul id="analysis-list">
+                            <!-- Populated via JS -->
+                        </ul>
+                    </div>
+                    <button id="restart-btn" class="neon-btn glow-red">REBOOT SEQUENCE</button>
+                </div>
+            </div>
+
+            <!-- Pause Screen -->
+            <div id="pause-screen" class="screen hidden">
+                <div class="glass-panel border-cyan">
+                    <h1 class="neon-text">PAUSED</h1>
+                    <p class="desc">Take a breath. The AI is waiting.</p>
+                    <button id="resume-btn" class="neon-btn glow-cyan">RESUME SIMULATION</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/game.js"></script>
+</body>
+</html>
