@@ -6,6 +6,18 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.006] - 2026-04-30
+### Changed
+- Re-engineered the trackpad controls to use an instant 1:1 delta motion mapping. The player dot now translates directly with your finger movement instead of moving at a constant speed, eliminating input lag.
+
+---
+
+## [v0.005] - 2026-04-30
+### Added
+- Created `CHANGELOG.md` to cleanly document the game's version history.
+
+---
+
 ## [v0.004] - 2026-04-30
 ### Added
 - Dedicated **Trackpad** at the bottom of the screen for mobile devices to prevent fingers from obstructing the game view.

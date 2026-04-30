@@ -9,10 +9,10 @@
 class Input {
     constructor() {
         this.keys = {};
-        this.touchStartX = null;
-        this.touchStartY = null;
-        this.touchX = null;
-        this.touchY = null;
+        this.lastTouchX = null;
+        this.lastTouchY = null;
+        this.touchDeltaX = 0;
+        this.touchDeltaY = 0;
         this.isDragging = false;
         
         window.addEventListener('keydown', (e) => this.keys[e.key] = true);
@@ -24,27 +24,29 @@ class Input {
             trackpad.addEventListener('touchstart', (e) => {
                 this.isDragging = true;
                 const touch = e.touches[0];
-                this.touchStartX = touch.clientX;
-                this.touchStartY = touch.clientY;
-                this.touchX = touch.clientX;
-                this.touchY = touch.clientY;
+                this.lastTouchX = touch.clientX;
+                this.lastTouchY = touch.clientY;
+                this.touchDeltaX = 0;
+                this.touchDeltaY = 0;
             }, {passive: false});
             
             trackpad.addEventListener('touchmove', (e) => {
                 if(this.isDragging) {
                     e.preventDefault();
                     const touch = e.touches[0];
-                    this.touchX = touch.clientX;
-                    this.touchY = touch.clientY;
+                    if (this.lastTouchX !== null) {
+                        this.touchDeltaX += (touch.clientX - this.lastTouchX) * 1.8;
+                        this.touchDeltaY += (touch.clientY - this.lastTouchY) * 1.8;
+                    }
+                    this.lastTouchX = touch.clientX;
+                    this.lastTouchY = touch.clientY;
                 }
             }, {passive: false});
             
             const endTouch = () => {
                 this.isDragging = false;
-                this.touchStartX = null;
-                this.touchStartY = null;
-                this.touchX = null;
-                this.touchY = null;
+                this.lastTouchX = null;
+                this.lastTouchY = null;
             };
             
             trackpad.addEventListener('touchend', endTouch);
@@ -61,22 +63,19 @@ class Input {
         if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) dx -= 1;
         if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) dx += 1;
 
-        if (this.isDragging && this.touchX !== null && this.touchY !== null && this.touchStartX !== null) {
-            const touchDx = this.touchX - this.touchStartX;
-            const touchDy = this.touchY - this.touchStartY;
-            const dist = Math.hypot(touchDx, touchDy);
-            
-            if (dist > 10) {
-                dx = touchDx / dist;
-                dy = touchDy / dist;
-            }
-        } else if (dx !== 0 || dy !== 0) {
+        if (dx !== 0 || dy !== 0) {
             const dist = Math.hypot(dx, dy);
             dx /= dist;
             dy /= dist;
         }
 
-        return { dx, dy };
+        const deltaX = this.touchDeltaX;
+        const deltaY = this.touchDeltaY;
+        
+        this.touchDeltaX = 0;
+        this.touchDeltaY = 0;
+
+        return { dx, dy, deltaX, deltaY };
     }
 }
 
@@ -117,13 +116,32 @@ class Player {
         this.x += this.vx * dt;
         this.y += this.vy * dt;
 
+        // Instant 1:1 trackpad delta movement
+        const sensitivity = this.speedBoostTimer > 0 ? 1.5 : 1.0;
+        this.x += move.deltaX * sensitivity;
+        this.y += move.deltaY * sensitivity;
+
+        if (move.deltaX !== 0 || move.deltaY !== 0) {
+            this.vx = move.deltaX / dt;
+            this.vy = move.deltaY / dt;
+        }
+
         this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
         this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
 
         this.timeSinceLastRecord += dt;
         if (this.timeSinceLastRecord >= 0.1) {
             this.timeSinceLastRecord = 0;
-            this.history.push({ x: this.x, y: this.y, dx: move.dx, dy: move.dy });
+            
+            let normDx = 0;
+            let normDy = 0;
+            const dist = Math.hypot(this.vx, this.vy);
+            if (dist > 0) {
+                normDx = this.vx / dist;
+                normDy = this.vy / dist;
+            }
+            
+            this.history.push({ x: this.x, y: this.y, dx: normDx, dy: normDy });
             if (this.history.length > 50) this.history.shift();
         }
     }
