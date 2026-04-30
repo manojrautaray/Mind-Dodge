@@ -445,7 +445,7 @@ class Renderer {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        ctx.strokeStyle = 'var(--grid-color)';
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.03)';
         ctx.lineWidth = 1;
         const gridSize = 60;
         for (let x = 0; x < this.canvas.width; x += gridSize) {

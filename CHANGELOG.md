@@ -6,6 +6,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.011] - 2026-04-30
+### Fixed
+- Fixed a massive visual bug where activating the Shield PowerUp caused the background grid to suddenly become bright white. (Canvas API does not natively support CSS variables, which caused `strokeStyle` state bleeding across frames).
+
+---
+
 ## [v0.010] - 2026-04-30
 ### Changed
 - Made the Game Over screen fully responsive on mobile by adding a max-height to the glass panel and introducing a stylized custom scrollbar for the AI Analysis list.
