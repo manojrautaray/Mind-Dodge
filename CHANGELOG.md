@@ -6,6 +6,16 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.200] - 2026-04-30
+### Added
+- **The Synesthesia Layer (Audio & Haptics)**:
+  - Built a custom `AudioManager` using the native Web Audio API (zero external assets).
+  - Added procedurally generated sound effects for PowerUps (ascending arpeggio), EMP blasts (low-pass filter bass drop), Shield breaks, Enemy Spawns, and Game Over.
+  - Added a dynamic background pulse heartbeat that speeds up mathematically as your score multiplier increases.
+  - Implemented the `navigator.vibrate()` API to deliver haptic feedback on mobile devices during crucial game events (e.g., massive rumble on EMP, light tap on powerup).
+
+---
+
 ## [v0.101] - 2026-04-30
 ### Fixed
 - Fixed the CSS flexbox logic on the Game Over screen. The Reboot button and headers no longer squash or get cut off; instead, the AI analysis list perfectly dynamically absorbs the remaining screen height and scrolls internally!

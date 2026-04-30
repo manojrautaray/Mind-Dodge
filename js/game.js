@@ -4,6 +4,145 @@
  */
 
 // ==========================================
+// AUDIO MANAGER
+// ==========================================
+class AudioManager {
+    constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.bgOsc = null;
+        this.bgGain = null;
+        this.nextBeatTime = 0;
+        this.beatInterval = 1.0;
+        this.isPlayingBg = false;
+    }
+
+    init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.3;
+        this.masterGain.connect(this.ctx.destination);
+    }
+    
+    resume() {
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    }
+
+    vibrate(pattern) {
+        if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    playTone(freq, type, duration, vol = 1) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    }
+
+    playNoise(duration, filterType, filterFreq) {
+        if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = filterType;
+        filter.frequency.value = filterFreq;
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(1, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        noise.connect(filter);
+        filter.connect(g);
+        g.connect(this.masterGain);
+        noise.start();
+    }
+
+    playSound(type) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        switch(type) {
+            case 'spawn':
+                this.playTone(800, 'sine', 0.1, 0.1);
+                break;
+            case 'powerup':
+                [400, 600, 800].forEach((f, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = f;
+                    g.gain.setValueAtTime(0, now + i*0.1);
+                    g.gain.linearRampToValueAtTime(0.3, now + i*0.1 + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.3);
+                    osc.connect(g);
+                    g.connect(this.masterGain);
+                    osc.start(now + i*0.1);
+                    osc.stop(now + i*0.1 + 0.3);
+                });
+                this.vibrate([50]);
+                break;
+            case 'shieldBreak':
+                this.playNoise(0.4, 'highpass', 1000);
+                this.vibrate([100, 50, 100]);
+                break;
+            case 'emp':
+                const osc = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 1.0);
+                g.gain.setValueAtTime(1, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(2000, now);
+                filter.frequency.exponentialRampToValueAtTime(100, now + 1.0);
+                osc.connect(filter);
+                filter.connect(g);
+                g.connect(this.masterGain);
+                osc.start();
+                osc.stop(now + 1.0);
+                this.vibrate([300, 100, 300]);
+                break;
+            case 'gameover':
+                this.playTone(150, 'sawtooth', 1.5, 0.8);
+                this.playTone(100, 'sawtooth', 1.5, 0.8);
+                this.vibrate([500, 200, 500]);
+                break;
+        }
+    }
+    
+    updatePulse(multiplier) {
+        if (!this.ctx || !this.isPlayingBg) return;
+        const now = this.ctx.currentTime;
+        if (now >= this.nextBeatTime) {
+            this.beatInterval = Math.max(0.3, 1.0 - (multiplier * 0.15)); 
+            this.playTone(60, 'sine', 0.3, 0.2);
+            this.nextBeatTime = now + this.beatInterval;
+        }
+    }
+    
+    startBg() {
+        this.isPlayingBg = true;
+        if(this.ctx) this.nextBeatTime = this.ctx.currentTime;
+    }
+    
+    stopBg() {
+        this.isPlayingBg = false;
+    }
+}
+
+// ==========================================
 // UTILS & INPUT
 // ==========================================
 class Input {
@@ -548,8 +687,9 @@ class Renderer {
 // GAME STATE
 // ==========================================
 class GameState {
-    constructor(renderer) {
+    constructor(renderer, audio) {
         this.renderer = renderer;
+        this.audio = audio;
         this.input = new Input();
         this.ai = new AIAnalyzer();
         
@@ -627,15 +767,18 @@ class GameState {
         }
         
         this.enemies.push(enemy);
+        this.audio.playSound('spawn');
         
         // Decreases spawn interval much more slowly
         this.spawnInterval = Math.max(0.6, 3.5 - (this.time / 45));
     }
 
     activatePowerUp(type) {
+        this.audio.playSound('powerup');
         if (type === 'shield') {
             this.player.hasShield = true;
         } else if (type === 'emp') {
+            this.audio.playSound('emp');
             this.enemies.forEach(e => {
                 this.renderer.addParticles(e.x, e.y, e.color, 20, 2);
             });
@@ -662,6 +805,7 @@ class GameState {
 
         this.time += dt;
         this.multiplier = 1.0 + Math.floor(this.time / 10) * 0.5;
+        this.audio.updatePulse(this.multiplier);
         this.score += 10 * this.multiplier * dt;
 
         this.player.update(dt, this.input, this.renderer.canvas.width, this.renderer.canvas.height);
@@ -710,6 +854,7 @@ class GameState {
             if (e.checkCollision(this.player)) {
                 if (this.player.hasShield) {
                     this.player.hasShield = false;
+                    this.audio.playSound('shieldBreak');
                     this.renderer.addParticles(e.x, e.y, '#ffffff', 50, 4);
                     this.renderer.addParticles(e.x, e.y, e.color, 30, 2);
                     this.enemies.splice(i, 1);
@@ -753,6 +898,8 @@ class GameState {
 
     gameOver() {
         this.isGameOver = true;
+        this.audio.stopBg();
+        this.audio.playSound('gameover');
         
         this.renderer.addParticles(this.player.x, this.player.y, this.player.color, 80, 4);
         
@@ -806,7 +953,8 @@ class GameState {
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('game-canvas');
     const renderer = new Renderer(canvas);
-    let gameState = new GameState(renderer);
+    const audio = new AudioManager();
+    let gameState = new GameState(renderer, audio);
 
     const startScreen = document.getElementById('start-screen');
     const hud = document.getElementById('hud');
@@ -822,6 +970,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('start-btn').addEventListener('click', () => {
+        audio.init();
+        audio.resume();
+        audio.startBg();
         startScreen.classList.add('hidden');
         hud.classList.remove('hidden');
         if (trackpad) trackpad.classList.remove('hidden');
@@ -831,6 +982,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('restart-btn').addEventListener('click', () => {
+        audio.resume();
+        audio.startBg();
         gameOverScreen.classList.add('hidden');
         hud.classList.remove('hidden');
         if (trackpad) trackpad.classList.remove('hidden');
