@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Mind Dodge: Adaptive AI Arena - Survive the glowing swarm in this neon dodger where the AI learns from your movements.">
     <title>Mind Dodge: Adaptive AI Arena</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#030308">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -41,7 +47,7 @@
             <div id="start-screen" class="screen">
                 <div class="glass-panel">
                     <h1 class="neon-text">MIND DODGE</h1>
-                    <div style="font-size: 0.75rem; color: #aaa; margin-top: 0.2rem; margin-bottom: 1rem; opacity: 0.5; letter-spacing: 1px;">v0.011</div>
+                    <div style="font-size: 0.75rem; color: #aaa; margin-top: 0.2rem; margin-bottom: 1rem; opacity: 0.5; letter-spacing: 1px;">v0.100</div>
                     <h2 class="neon-subtitle">ADAPTIVE AI ARENA</h2>
                     <p class="desc">Survive the glowing swarm. The AI learns your patterns and adapts in real-time. Collect drops for an advantage!</p>
                     <div class="controls-info">
@@ -100,5 +106,14 @@
     </div>
     
     <script src="js/game.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed: ', err));
+            });
+        }
+    </script>
 </body>
 </html>

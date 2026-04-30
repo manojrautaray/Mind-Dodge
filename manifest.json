@@ -1,0 +1,24 @@
+{
+    "name": "Mind Dodge",
+    "short_name": "Mind Dodge",
+    "description": "An adaptive AI survival arcade game.",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#030308",
+    "theme_color": "#00ffff",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "./icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "./icon.svg",
+            "sizes": "192x192 512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

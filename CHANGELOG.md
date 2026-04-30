@@ -6,6 +6,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.100] - 2026-04-30
+### Added
+- **PWA Support**: Transformed the game into a full Progressive Web App. Added `manifest.json`, an offline-capable Service Worker (`sw.js`), and a scalable vector app icon. The game can now be installed directly to your phone's home screen and played completely offline!
+
+---
+
 ## [v0.011] - 2026-04-30
 ### Fixed
 - Fixed a massive visual bug where activating the Shield PowerUp caused the background grid to suddenly become bright white. (Canvas API does not natively support CSS variables, which caused `strokeStyle` state bleeding across frames).
