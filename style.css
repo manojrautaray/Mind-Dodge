@@ -113,7 +113,10 @@ canvas {
     align-items: center;
     max-width: 90vw;
     max-height: 90vh;
-    overflow-y: auto;
+}
+
+.glass-panel > * {
+    flex-shrink: 0;
 }
 
 .glass-panel.border-red {
@@ -373,6 +376,11 @@ canvas {
     width: 100%;
     max-width: 500px;
     box-shadow: inset 0 0 20px rgba(170, 0, 255, 0.1);
+    
+    flex-shrink: 1 !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .ai-analysis h3 {
@@ -392,7 +400,8 @@ canvas {
     font-size: 1rem;
     line-height: 1.6;
     color: #ddd;
-    max-height: 25vh;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding-right: 10px;
 }

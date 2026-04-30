@@ -6,6 +6,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.101] - 2026-04-30
+### Fixed
+- Fixed the CSS flexbox logic on the Game Over screen. The Reboot button and headers no longer squash or get cut off; instead, the AI analysis list perfectly dynamically absorbs the remaining screen height and scrolls internally!
+
+---
+
 ## [v0.100] - 2026-04-30
 ### Added
 - **PWA Support**: Transformed the game into a full Progressive Web App. Added `manifest.json`, an offline-capable Service Worker (`sw.js`), and a scalable vector app icon. The game can now be installed directly to your phone's home screen and played completely offline!
