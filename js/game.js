@@ -11,6 +11,8 @@ class Input {
         this.keys = {};
         this.touchX = null;
         this.touchY = null;
+        this.touchStartX = null;
+        this.touchStartY = null;
         this.isDragging = false;
         
         window.addEventListener('keydown', (e) => this.keys[e.key] = true);
@@ -20,28 +22,41 @@ class Input {
         
         canvas.addEventListener('touchstart', (e) => {
             this.isDragging = true;
-            this.updateTouchPos(e);
+            this.updateTouchPos(e, true);
         }, {passive: false});
         
         canvas.addEventListener('touchmove', (e) => {
             if(this.isDragging) {
                 e.preventDefault(); // Prevent scrolling on mobile
-                this.updateTouchPos(e);
+                this.updateTouchPos(e, false);
             }
         }, {passive: false});
         
-        canvas.addEventListener('touchend', () => {
+        const endTouch = () => {
             this.isDragging = false;
             this.touchX = null;
             this.touchY = null;
-        });
+            this.touchStartX = null;
+            this.touchStartY = null;
+        };
+        
+        canvas.addEventListener('touchend', endTouch);
+        canvas.addEventListener('touchcancel', endTouch);
     }
 
-    updateTouchPos(e) {
+    updateTouchPos(e, isStart) {
         const touch = e.touches[0];
         const rect = e.target.getBoundingClientRect();
-        this.touchX = touch.clientX - rect.left;
-        this.touchY = touch.clientY - rect.top;
+        const tx = touch.clientX - rect.left;
+        const ty = touch.clientY - rect.top;
+        
+        if (isStart) {
+            this.touchStartX = tx;
+            this.touchStartY = ty;
+        }
+        
+        this.touchX = tx;
+        this.touchY = ty;
     }
 
     getMovement(player) {
@@ -53,12 +68,13 @@ class Input {
         if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) dx -= 1;
         if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) dx += 1;
 
-        if (this.isDragging && this.touchX !== null && this.touchY !== null) {
-            const touchDx = this.touchX - player.x;
-            const touchDy = this.touchY - player.y;
+        if (this.isDragging && this.touchX !== null && this.touchY !== null && this.touchStartX !== null) {
+            // Virtual Joystick: movement is relative to initial touch point
+            const touchDx = this.touchX - this.touchStartX;
+            const touchDy = this.touchY - this.touchStartY;
             const dist = Math.hypot(touchDx, touchDy);
             
-            if (dist > 15) {
+            if (dist > 10) { // Deadzone
                 dx = touchDx / dist;
                 dy = touchDy / dist;
             }
