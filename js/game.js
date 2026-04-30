@@ -9,54 +9,47 @@
 class Input {
     constructor() {
         this.keys = {};
-        this.touchX = null;
-        this.touchY = null;
         this.touchStartX = null;
         this.touchStartY = null;
+        this.touchX = null;
+        this.touchY = null;
         this.isDragging = false;
         
         window.addEventListener('keydown', (e) => this.keys[e.key] = true);
         window.addEventListener('keyup', (e) => this.keys[e.key] = false);
         
-        const canvas = document.getElementById('game-canvas');
+        const trackpad = document.getElementById('trackpad');
         
-        canvas.addEventListener('touchstart', (e) => {
-            this.isDragging = true;
-            this.updateTouchPos(e, true);
-        }, {passive: false});
-        
-        canvas.addEventListener('touchmove', (e) => {
-            if(this.isDragging) {
-                e.preventDefault(); // Prevent scrolling on mobile
-                this.updateTouchPos(e, false);
-            }
-        }, {passive: false});
-        
-        const endTouch = () => {
-            this.isDragging = false;
-            this.touchX = null;
-            this.touchY = null;
-            this.touchStartX = null;
-            this.touchStartY = null;
-        };
-        
-        canvas.addEventListener('touchend', endTouch);
-        canvas.addEventListener('touchcancel', endTouch);
-    }
-
-    updateTouchPos(e, isStart) {
-        const touch = e.touches[0];
-        const rect = e.target.getBoundingClientRect();
-        const tx = touch.clientX - rect.left;
-        const ty = touch.clientY - rect.top;
-        
-        if (isStart) {
-            this.touchStartX = tx;
-            this.touchStartY = ty;
+        if (trackpad) {
+            trackpad.addEventListener('touchstart', (e) => {
+                this.isDragging = true;
+                const touch = e.touches[0];
+                this.touchStartX = touch.clientX;
+                this.touchStartY = touch.clientY;
+                this.touchX = touch.clientX;
+                this.touchY = touch.clientY;
+            }, {passive: false});
+            
+            trackpad.addEventListener('touchmove', (e) => {
+                if(this.isDragging) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    this.touchX = touch.clientX;
+                    this.touchY = touch.clientY;
+                }
+            }, {passive: false});
+            
+            const endTouch = () => {
+                this.isDragging = false;
+                this.touchStartX = null;
+                this.touchStartY = null;
+                this.touchX = null;
+                this.touchY = null;
+            };
+            
+            trackpad.addEventListener('touchend', endTouch);
+            trackpad.addEventListener('touchcancel', endTouch);
         }
-        
-        this.touchX = tx;
-        this.touchY = ty;
     }
 
     getMovement(player) {
@@ -69,12 +62,11 @@ class Input {
         if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) dx += 1;
 
         if (this.isDragging && this.touchX !== null && this.touchY !== null && this.touchStartX !== null) {
-            // Virtual Joystick: movement is relative to initial touch point
             const touchDx = this.touchX - this.touchStartX;
             const touchDy = this.touchY - this.touchStartY;
             const dist = Math.hypot(touchDx, touchDy);
             
-            if (dist > 10) { // Deadzone
+            if (dist > 10) {
                 dx = touchDx / dist;
                 dy = touchDy / dist;
             }
@@ -753,6 +745,8 @@ class GameState {
 
         setTimeout(() => {
             document.getElementById('hud').classList.add('hidden');
+            const trackpad = document.getElementById('trackpad');
+            if (trackpad) trackpad.classList.add('hidden');
             document.getElementById('game-over-screen').classList.remove('hidden');
             
             document.getElementById('final-score').textContent = Math.floor(this.score);
@@ -794,6 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hud = document.getElementById('hud');
     const gameOverScreen = document.getElementById('game-over-screen');
     const pauseScreen = document.getElementById('pause-screen');
+    const trackpad = document.getElementById('trackpad');
 
     let animationFrameId;
 
@@ -805,6 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('start-btn').addEventListener('click', () => {
         startScreen.classList.add('hidden');
         hud.classList.remove('hidden');
+        if (trackpad) trackpad.classList.remove('hidden');
         gameState.reset();
         gameState.lastTime = performance.now();
         gameLoop(gameState.lastTime);
@@ -813,6 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('restart-btn').addEventListener('click', () => {
         gameOverScreen.classList.add('hidden');
         hud.classList.remove('hidden');
+        if (trackpad) trackpad.classList.remove('hidden');
         gameState.reset();
         gameState.lastTime = performance.now();
     });
