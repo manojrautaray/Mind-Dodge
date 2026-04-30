@@ -21,36 +21,36 @@ class Input {
         const trackpad = document.getElementById('trackpad');
         
         if (trackpad) {
-            trackpad.addEventListener('touchstart', (e) => {
+            trackpad.addEventListener('pointerdown', (e) => {
                 this.isDragging = true;
-                const touch = e.touches[0];
-                this.lastTouchX = touch.clientX;
-                this.lastTouchY = touch.clientY;
+                trackpad.setPointerCapture(e.pointerId);
+                this.lastTouchX = e.clientX;
+                this.lastTouchY = e.clientY;
                 this.touchDeltaX = 0;
                 this.touchDeltaY = 0;
-            }, {passive: false});
+            });
             
-            trackpad.addEventListener('touchmove', (e) => {
+            trackpad.addEventListener('pointermove', (e) => {
                 if(this.isDragging) {
                     e.preventDefault();
-                    const touch = e.touches[0];
                     if (this.lastTouchX !== null) {
-                        this.touchDeltaX += (touch.clientX - this.lastTouchX) * 1.8;
-                        this.touchDeltaY += (touch.clientY - this.lastTouchY) * 1.8;
+                        this.touchDeltaX += (e.clientX - this.lastTouchX) * 1.5;
+                        this.touchDeltaY += (e.clientY - this.lastTouchY) * 1.5;
                     }
-                    this.lastTouchX = touch.clientX;
-                    this.lastTouchY = touch.clientY;
+                    this.lastTouchX = e.clientX;
+                    this.lastTouchY = e.clientY;
                 }
-            }, {passive: false});
+            });
             
-            const endTouch = () => {
+            const endTouch = (e) => {
                 this.isDragging = false;
+                try { trackpad.releasePointerCapture(e.pointerId); } catch(err){}
                 this.lastTouchX = null;
                 this.lastTouchY = null;
             };
             
-            trackpad.addEventListener('touchend', endTouch);
-            trackpad.addEventListener('touchcancel', endTouch);
+            trackpad.addEventListener('pointerup', endTouch);
+            trackpad.addEventListener('pointercancel', endTouch);
         }
     }
 
@@ -126,8 +126,10 @@ class Player {
             this.vy = move.deltaY / dt;
         }
 
+        const playableHeight = window.innerWidth <= 768 ? canvasHeight * 0.65 : canvasHeight;
+
         this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
-        this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
+        this.y = Math.max(this.radius, Math.min(playableHeight - this.radius, this.y));
 
         this.timeSinceLastRecord += dt;
         if (this.timeSinceLastRecord >= 0.1) {
@@ -411,8 +413,7 @@ class Renderer {
 
     resize() {
         this.canvas.width = window.innerWidth;
-        // On mobile, restrict canvas to the top 65% so the trackpad (bottom 35%) is a dedicated unplayable zone
-        this.canvas.height = window.innerWidth <= 768 ? window.innerHeight * 0.65 : window.innerHeight;
+        this.canvas.height = window.innerHeight;
     }
 
     addParticles(x, y, color, count = 10, speed = 1) {
@@ -600,8 +601,9 @@ class GameState {
         const margin = 80;
         const cw = this.renderer.canvas.width;
         const ch = this.renderer.canvas.height;
+        const playableHeight = window.innerWidth <= 768 ? ch * 0.65 : ch;
         const x = margin + Math.random() * (cw - margin * 2);
-        const y = margin + Math.random() * (ch - margin * 2);
+        const y = margin + Math.random() * (playableHeight - margin * 2);
         
         this.powerUps.push(new PowerUp(x, y, type));
     }
@@ -609,8 +611,9 @@ class GameState {
     spawnEnemy() {
         const cw = this.renderer.canvas.width;
         const ch = this.renderer.canvas.height;
+        const playableHeight = window.innerWidth <= 768 ? ch * 0.65 : ch;
         
-        const rec = this.ai.getSpawnRecommendation(cw, ch, this.player);
+        const rec = this.ai.getSpawnRecommendation(cw, playableHeight, this.player);
         // Extremely gradual speed scaling to help players adapt
         const speedMult = 0.7 + (this.time / 150) * 0.6; 
         
@@ -698,7 +701,8 @@ class GameState {
             }
         }
 
-        this.enemies.forEach(e => e.update(dt, this.player, this.renderer.canvas.width, this.renderer.canvas.height));
+        const playableHeight = window.innerWidth <= 768 ? this.renderer.canvas.height * 0.65 : this.renderer.canvas.height;
+        this.enemies.forEach(e => e.update(dt, this.player, this.renderer.canvas.width, playableHeight));
 
         // Check Collisions (iterate backwards for splicing safely)
         for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -730,7 +734,8 @@ class GameState {
         this.aiTimer += dt;
         if (this.aiTimer >= 1.0) {
             this.aiTimer = 0;
-            this.ai.analyze(this.player, this.renderer.canvas.width, this.renderer.canvas.height);
+            const playableHeight = window.innerWidth <= 768 ? this.renderer.canvas.height * 0.65 : this.renderer.canvas.height;
+            this.ai.analyze(this.player, this.renderer.canvas.width, playableHeight);
             this.updateHUD();
         }
 

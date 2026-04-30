@@ -6,6 +6,14 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.008] - 2026-04-30
+### Changed
+- Fixed the canvas stretching bug on mobile by moving boundary restrictions directly into the physics engine instead of CSS. Enemies, drops, and the player correctly bounce off the top 65% logic line, leaving the bottom 35% completely empty.
+- Upgraded Trackpad input to use Pointer Events with `setPointerCapture` for high-performance, non-laggy continuous dragging even if your finger slips off the div.
+- Made the homescreen version indicator more subtle.
+
+---
+
 ## [v0.007] - 2026-04-30
 ### Changed
 - Displayed the game version `v0.007` directly on the start screen.
