@@ -6,6 +6,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.010] - 2026-04-30
+### Changed
+- Made the Game Over screen fully responsive on mobile by adding a max-height to the glass panel and introducing a stylized custom scrollbar for the AI Analysis list.
+
+---
+
 ## [v0.009] - 2026-04-30
 ### Changed
 - Fixed the version text overlapping the game title on the start screen by adjusting its margin.
