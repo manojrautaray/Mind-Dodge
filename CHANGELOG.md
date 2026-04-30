@@ -6,6 +6,13 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.007] - 2026-04-30
+### Changed
+- Displayed the game version `v0.007` directly on the start screen.
+- Restricted the physics engine and rendering canvas to the top 65% of the screen on mobile devices. The trackpad now occupies a dedicated, unplayable zone at the bottom so enemies and players stay fully visible above your fingers.
+
+---
+
 ## [v0.006] - 2026-04-30
 ### Changed
 - Re-engineered the trackpad controls to use an instant 1:1 delta motion mapping. The player dot now translates directly with your finger movement instead of moving at a constant speed, eliminating input lag.

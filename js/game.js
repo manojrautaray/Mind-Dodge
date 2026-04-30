@@ -411,7 +411,8 @@ class Renderer {
 
     resize() {
         this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        // On mobile, restrict canvas to the top 65% so the trackpad (bottom 35%) is a dedicated unplayable zone
+        this.canvas.height = window.innerWidth <= 768 ? window.innerHeight * 0.65 : window.innerHeight;
     }
 
     addParticles(x, y, color, count = 10, speed = 1) {
