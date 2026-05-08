@@ -75,6 +75,9 @@ class AudioManager {
             case 'spawn':
                 this.playTone(800, 'sine', 0.1, 0.1);
                 break;
+            case 'graze':
+                this.playTone(1500, 'square', 0.05, 0.05);
+                break;
             case 'powerup':
                 [400, 600, 800].forEach((f, i) => {
                     const osc = this.ctx.createOscillator();
@@ -546,6 +549,7 @@ class Renderer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.particles = [];
+        this.floatingTexts = [];
         this.resize();
         window.addEventListener('resize', () => this.resize());
     }
@@ -568,6 +572,14 @@ class Renderer {
         }
     }
 
+    addFloatingText(x, y, text, color) {
+        this.floatingTexts.push({
+            x, y, text, color,
+            life: 1.0,
+            vy: -40
+        });
+    }
+
     updateParticles(dt) {
         for (let i = this.particles.length - 1; i >= 0; i--) {
             let p = this.particles[i];
@@ -576,6 +588,15 @@ class Renderer {
             p.life -= dt * 1.5;
             if (p.life <= 0) {
                 this.particles.splice(i, 1);
+            }
+        }
+        
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            let ft = this.floatingTexts[i];
+            ft.y += ft.vy * dt;
+            ft.life -= dt * 0.7; // fade out over ~1.4s
+            if (ft.life <= 0) {
+                this.floatingTexts.splice(i, 1);
             }
         }
     }
@@ -603,6 +624,18 @@ class Renderer {
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
             ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        // Floating Texts
+        ctx.shadowBlur = 5;
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 18px "JetBrains Mono", monospace';
+        this.floatingTexts.forEach(ft => {
+            ctx.shadowColor = ft.color;
+            ctx.fillStyle = ft.color;
+            ctx.globalAlpha = Math.max(0, ft.life);
+            ctx.fillText(ft.text, ft.x, ft.y);
         });
         ctx.globalAlpha = 1.0;
 
@@ -706,6 +739,7 @@ class GameState {
         this.score = 0;
         this.time = 0;
         this.multiplier = 1.0;
+        this.grazeBonus = 0;
         
         this.isGameOver = false;
         this.isPaused = false;
@@ -779,6 +813,15 @@ class GameState {
             this.player.hasShield = true;
         } else if (type === 'emp') {
             this.audio.playSound('emp');
+            
+            const numEnemies = this.enemies.length;
+            if (numEnemies > 0) {
+                const empPoints = (numEnemies * numEnemies) * 50;
+                this.score += empPoints;
+                this.renderer.addFloatingText(this.player.x, this.player.y - 30, `EMP CLEAR x${numEnemies}`, '#ffff00');
+                this.renderer.addFloatingText(this.player.x, this.player.y - 10, `+${empPoints}`, '#ffff00');
+            }
+
             this.enemies.forEach(e => {
                 this.renderer.addParticles(e.x, e.y, e.color, 20, 2);
             });
@@ -804,7 +847,7 @@ class GameState {
         if (dt > 0.1) return; 
 
         this.time += dt;
-        this.multiplier = 1.0 + Math.floor(this.time / 10) * 0.5;
+        this.multiplier = 1.0 + Math.floor(this.time / 10) * 0.5 + this.grazeBonus;
         this.audio.updatePulse(this.multiplier);
         this.score += 10 * this.multiplier * dt;
 
@@ -846,7 +889,29 @@ class GameState {
         }
 
         const playableHeight = window.innerWidth <= 768 ? this.renderer.canvas.height * 0.65 : this.renderer.canvas.height;
-        this.enemies.forEach(e => e.update(dt, this.player, this.renderer.canvas.width, playableHeight));
+        this.enemies.forEach(e => {
+            e.update(dt, this.player, this.renderer.canvas.width, playableHeight);
+            
+            // Graze check
+            const dx = e.x - this.player.x;
+            const dy = e.y - this.player.y;
+            const dist = Math.hypot(dx, dy);
+            const grazeThreshold = (e.radius + this.player.radius) * 2.5;
+            const collisionDist = (e.radius + this.player.radius) * 0.8;
+            
+            if (dist < grazeThreshold && dist > collisionDist) {
+                if (!e.isGrazing) {
+                    e.isGrazing = true;
+                    const pts = 25 * this.multiplier;
+                    this.score += pts;
+                    this.grazeBonus += 0.05;
+                    this.renderer.addFloatingText(e.x, e.y, `GRAZE`, '#00ffff');
+                    this.audio.playSound('graze');
+                }
+            } else if (dist >= grazeThreshold) {
+                e.isGrazing = false;
+            }
+        });
 
         // Check Collisions (iterate backwards for splicing safely)
         for (let i = this.enemies.length - 1; i >= 0; i--) {

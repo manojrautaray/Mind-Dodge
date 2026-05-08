@@ -6,6 +6,14 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.201] - 2026-05-07
+### Added
+- **Risk/Reward Scoring Layer**:
+  - **Graze Mechanic**: Brushing extremely close to enemies without touching them now triggers a "GRAZE" popup, instantly awarding bonus points and permanently boosting your global score multiplier.
+  - **EMP Banking**: Waiting to trigger an EMP until the screen is packed with enemies now yields massive exponential points (e.g. wiping 10 enemies at once drops a huge point bonus), complete with floating text combo indicators.
+
+---
+
 ## [v0.200] - 2026-04-30
 ### Added
 - **The Synesthesia Layer (Audio & Haptics)**:
