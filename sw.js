@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mind-dodge-v2';
+const CACHE_NAME = 'mind-dodge-v0.204';
 const ASSETS = [
     './',
     './index.html',

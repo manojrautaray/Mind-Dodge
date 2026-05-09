@@ -6,6 +6,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.204] - 2026-05-09
+### Fixed
+- **PWA Cache Strategy**: Fixed an issue where the Service Worker was not detecting new updates because the `sw.js` file itself was not being modified between releases. The `CACHE_NAME` inside `sw.js` is now strictly bound to the release version, guaranteeing that the browser detects the byte-change and triggers the "Update Available" UI!
+
+---
+
 ## [v0.203] - 2026-05-09
 ### Added
 - **Hit-Stop & Zen Mode Layer (Game Feel Polish)**:
