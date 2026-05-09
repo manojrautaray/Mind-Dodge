@@ -6,6 +6,14 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.203] - 2026-05-09
+### Added
+- **Hit-Stop & Zen Mode Layer (Game Feel Polish)**:
+  - **Hit-Stop**: Breaking a shield or detonating an EMP now completely freezes the game loop for a fraction of a second, while particles continue to animate over the frozen screen. This mimics classic arcade impacts.
+  - **Zen Mode**: When you successfully clear the board with an EMP or break a shield, time physically slows down (time-scale drops) for a few seconds, accompanied by a subtle cyan visual tint, allowing you to catch your breath.
+
+---
+
 ## [v0.202] - 2026-05-09
 ### Added
 - **PWA Live Updater**: Implemented a "Update Available" toast notification that appears gracefully on the homescreen when a new version of the game is pushed. Clicking "INSTALL" triggers the Service Worker to skip waiting and automatically reloads the game, eliminating stale cache issues.

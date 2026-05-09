@@ -605,6 +605,11 @@ class Renderer {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        if (gameState && gameState.timeScale < 1.0) {
+            ctx.fillStyle = `rgba(0, 255, 255, ${0.1 * (1.0 - gameState.timeScale)})`;
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
         ctx.strokeStyle = 'rgba(0, 255, 255, 0.03)';
         ctx.lineWidth = 1;
         const gridSize = 60;
@@ -740,6 +745,9 @@ class GameState {
         this.time = 0;
         this.multiplier = 1.0;
         this.grazeBonus = 0;
+        this.hitStopTimer = 0;
+        this.timeScale = 1.0;
+        this.zenModeTimer = 0;
         
         this.isGameOver = false;
         this.isPaused = false;
@@ -820,6 +828,8 @@ class GameState {
                 this.score += empPoints;
                 this.renderer.addFloatingText(this.player.x, this.player.y - 30, `EMP CLEAR x${numEnemies}`, '#ffff00');
                 this.renderer.addFloatingText(this.player.x, this.player.y - 10, `+${empPoints}`, '#ffff00');
+                this.hitStopTimer = 0.15;
+                this.zenModeTimer = 2.5;
             }
 
             this.enemies.forEach(e => {
@@ -840,11 +850,29 @@ class GameState {
 
     update(currentTime) {
         if (this.lastTime === 0) this.lastTime = currentTime;
-        const dt = (currentTime - this.lastTime) / 1000;
+        const rawDt = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
         if (this.isGameOver || this.isPaused) return;
-        if (dt > 0.1) return; 
+        if (rawDt > 0.1) return; 
+
+        if (this.hitStopTimer > 0) {
+            this.hitStopTimer -= rawDt;
+            this.renderer.updateParticles(rawDt);
+            this.renderer.draw(this);
+            return;
+        }
+
+        if (this.zenModeTimer > 0) {
+            this.zenModeTimer -= rawDt;
+            this.timeScale = 0.3;
+        } else {
+            if (this.timeScale < 1.0) {
+                this.timeScale = Math.min(1.0, this.timeScale + rawDt * 0.5);
+            }
+        }
+
+        const dt = rawDt * this.timeScale;
 
         this.time += dt;
         this.multiplier = 1.0 + Math.floor(this.time / 10) * 0.5 + this.grazeBonus;
@@ -923,6 +951,8 @@ class GameState {
                     this.renderer.addParticles(e.x, e.y, '#ffffff', 50, 4);
                     this.renderer.addParticles(e.x, e.y, e.color, 30, 2);
                     this.enemies.splice(i, 1);
+                    this.hitStopTimer = 0.2;
+                    this.zenModeTimer = 1.0;
                     
                     const container = document.getElementById('game-container');
                     container.classList.remove('shake');
