@@ -6,6 +6,12 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ---
 
+## [v0.202] - 2026-05-09
+### Added
+- **PWA Live Updater**: Implemented a "Update Available" toast notification that appears gracefully on the homescreen when a new version of the game is pushed. Clicking "INSTALL" triggers the Service Worker to skip waiting and automatically reloads the game, eliminating stale cache issues.
+
+---
+
 ## [v0.201] - 2026-05-07
 ### Added
 - **Risk/Reward Scoring Layer**:

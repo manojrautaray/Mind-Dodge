@@ -25,6 +25,11 @@
         
         <!-- UI Overlay -->
         <div id="ui-layer">
+            <div id="update-toast" class="hidden" style="position: absolute; top: 1.5rem; left: 50%; transform: translateX(-50%); background: rgba(0, 255, 255, 0.15); border: 1px solid var(--player-color); padding: 0.5rem 1rem; border-radius: 50px; z-index: 1000; backdrop-filter: blur(8px); display: flex; align-items: center; gap: 1rem; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); pointer-events: auto;">
+                <span style="color: #fff; font-size: 0.9rem; font-weight: bold; text-shadow: 0 0 5px var(--player-color);">Update Available</span>
+                <button id="update-btn" class="key" style="cursor: pointer; background: var(--player-color); color: #000; text-shadow: none; border: none; border-radius: 20px; padding: 0.3rem 0.8rem;">INSTALL</button>
+            </div>
+            
             <!-- Heads Up Display -->
             <div id="hud" class="hidden">
                 <div class="top-bar">
@@ -47,7 +52,7 @@
             <div id="start-screen" class="screen">
                 <div class="glass-panel">
                     <h1 class="neon-text">MIND DODGE</h1>
-                    <div style="font-size: 0.75rem; color: #aaa; margin-top: 0.2rem; margin-bottom: 1rem; opacity: 0.5; letter-spacing: 1px;">v0.201</div>
+                    <div style="font-size: 0.75rem; color: #aaa; margin-top: 0.2rem; margin-bottom: 1rem; opacity: 0.5; letter-spacing: 1px;">v0.202</div>
                     <h2 class="neon-subtitle">ADAPTIVE AI ARENA</h2>
                     <p class="desc">Survive the glowing swarm. The AI learns your patterns and adapts in real-time. Collect drops for an advantage!</p>
                     <div class="controls-info">
@@ -107,11 +112,37 @@
     
     <script src="js/game.js"></script>
     <script>
+        let newWorker;
+        const updateToast = document.getElementById('update-toast');
+        const updateBtn = document.getElementById('update-btn');
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed: ', err));
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('Service Worker registered');
+                    reg.addEventListener('updatefound', () => {
+                        newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                updateToast.classList.remove('hidden');
+                            }
+                        });
+                    });
+                }).catch(err => console.log('Service Worker registration failed: ', err));
+            });
+
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
+            });
+
+            updateBtn.addEventListener('click', () => {
+                updateToast.classList.add('hidden');
+                if (newWorker) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }
             });
         }
     </script>
